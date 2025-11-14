@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>F10掘金信息图生成器</title>
+    <!-- 字体预加载 -->
+    <link rel="preload" href="MiSans/MiSans-Medium.ttf" as="font" type="font/ttf" crossorigin>
+    <link rel="preload" href="MiSans/MiSans-Semibold.ttf" as="font" type="font/ttf" crossorigin>
+    <link rel="preload" href="MiSans/MiSans-Demibold.ttf" as="font" type="font/ttf" crossorigin>
+    <link rel="preload" href="MiSans/MiSans-Bold.ttf" as="font" type="font/ttf" crossorigin>
+    <style>
+        @font-face {
+            font-family: 'MiSans-Bold';
+            src: url('MiSans/MiSans-Bold.ttf') format('truetype');
+            font-weight: 700;
+            font-style: normal;
+            font-display: swap;
+        }
+        
+        @font-face {
+            font-family: 'MiSans-Demibold';
+            src: url('MiSans/MiSans-Demibold.ttf') format('truetype');
+            font-weight: 600;
+            font-style: normal;
+            font-display: swap;
+        }
+        
+        @font-face {
+            font-family: 'MiSans-Semibold';
+            src: url('MiSans/MiSans-Semibold.ttf') format('truetype');
+            font-weight: 600;
+            font-style: normal;
+            font-display: swap;
+        }
+        
+        @font-face {
+            font-family: 'MiSans-Medium';
+            src: url('MiSans/MiSans-Medium.ttf') format('truetype');
+            font-weight: 500;
+            font-style: normal;
+            font-display: swap;
+        }
+        
+        body {
+            font-family: 'PingFang SC', 'Helvetica Neue', Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f9f9f9;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        h1 {
+            width: 100%;
+            margin-bottom: 20px;
+            color: #333;
+        }
+        .input-section {
+            flex: 1;
+            min-width: 300px;
+            max-width: 400px;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .preview-section {
+            flex: 2;
+            min-width: 600px;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            text-align: center;
+            overflow: auto;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 14px;
+            color: #555;
+        }
+        input[type="text"], textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+        input[type="file"] {
+            margin-top: 5px;
+        }
+        button {
+            background-color: #4169E1;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #3254b8;
+        }
+        #infoGraphic {
+            max-width: 100%;
+            height: auto;
+            border: 1px solid #eee;
+        }
+        .color-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        input[type="color"] {
+            width: 40px;
+            height: 30px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .color-hex-input {
+            width: 80px;
+            padding: 4px 8px;
+            font-size: 13px;
+            font-family: monospace;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .form-hint {
+            margin-right: 10px;
+        }
+        .section-title {
+            font-weight: bold;
+            margin-top: 15px;
+            margin-bottom: 5px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 5px;
+        }
+        .template-selection {
+            display: flex;
+            gap: 10px;
+            margin-top: 5px;
+        }
+        .template-btn {
+            padding: 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            border: 1px solid #ddd;
+            background-color: #f9f9f9;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 80px;
+        }
+        .template-btn:hover {
+            background-color: #eee;
+        }
+        .template-btn.active {
+            background-color: #f0f0f0;
+            border-color: #3254b8;
+            box-shadow: 0 0 5px rgba(0,0,0,0.2);
+        }
+        .template-preview {
+            width: 60px;
+            height: 30px;
+            border-radius: 3px;
+            margin-bottom: 5px;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid #ddd;
+        }
+        .template-preview::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to right, var(--deep-color) 0%, var(--light-color) 100%);
+            opacity: 0.6;
+            z-index: 1;
+        }
+        .template-preview::after {
+            content: '';
+            position: absolute;
+            left: 10px;
+            right: 10px;
+            bottom: 5px;
+            height: 8px;
+            background: linear-gradient(to right, var(--row-deep) 0%, var(--row-light) 100%);
+            border-radius: 4px;
+            z-index: 2;
+        }
+        .default-preview {
+            background-color: #f5f5f5;
+            --deep-color: #0052cc;
+            --light-color: #4169E1;
+            --row-deep: #f0f7ff;
+            --row-light: #ffffff;
+        }
+        .red-preview {
+            background-color: #902622;
+            --deep-color: #bd1803;
+            --light-color: #cb2914;
+            --row-deep: #fee8e8;
+            --row-light: #f8f2f2;
+        }
+        .blue-preview {
+            background-color: #24439a;
+            --deep-color: #1e3dba;
+            --light-color: #0f41d8;
+            --row-deep: #e8f0fe;
+            --row-light: #f3f5f9;
+        }
+        .purple-preview {
+            background-color: #2b0b52;
+            --deep-color: #7520be;
+            --light-color: #64149e;
+            --row-deep: #ebdff0;
+            --row-light: #fcf8fe;
+        }
+        .small-btn {
+            padding: 2px 8px;
+            font-size: 12px;
+            background-color: #f0f0f0;
+            color: #333;
+            border: 1px solid #ddd;
+        }
+        .small-btn:hover {
+            background-color: #e0e0e0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>F10掘金信息图生成器</h1>
+        
+        <div class="input-section">
+            <div class="section-title">基本信息</div>
+            <div class="form-group">
+                <label for="mainTitleInput">主标题（将显示在最上方）：</label>
+                <input type="text" id="mainTitleInput" placeholder="请输入主标题（默认 F10掘金）">
+            </div>
+            <div class="form-group">
+                <label for="subtitle">副标题（将显示在主标题下方）：</label>
+                <input type="text" id="subtitle" placeholder="请输入副标题">
+                <div class="form-hint" style="font-size: 12px; color: #666; margin-top: 5px;">
+                    提示：使用[[文本]]格式可以对特定文本应用渐变色，例如"2023年[[第三季度]]报告"
+                </div>
+                
+                <div style="display: flex; align-items: center; margin-top: 10px;">
+                    <label for="subtitleFontSize" style="margin-right: 10px; min-width: 120px;">副标题字号：</label>
+                    <input type="range" id="subtitleFontSize" min="60" max="130" value="130" style="flex-grow: 1;">
+                    <span id="subtitleFontSizeValue" style="margin-left: 10px; min-width: 30px; text-align: right;">130</span>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="mainImage">主图片上传：</label>
+                <input type="file" id="mainImage" accept="image/*">
+            </div>
+            
+            <div class="form-group">
+                <label for="excelFile">Excel数据文件：</label>
+                <input type="file" id="excelFile" accept=".xlsx, .xls">
+            </div>
+            
+            <div class="form-group">
+                <label for="companyLogos">公司Logo数据（JSON格式）：</label>
+                <textarea id="companyLogos" placeholder="粘贴公司名称和logo URL的JSON数据" rows="5" style="resize: vertical;"></textarea>
+                <div class="form-hint" style="font-size: 12px; color: #666; margin-top: 5px;">
+                    提示：JSON格式应包含公司name和company_logo字段，参考logo_example.json
+                </div>
+                <div class="flex-container" style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px;">
+                    <button type="button" id="fillSampleData" class="small-btn">填充示例数据</button>
+                    <div class="checkbox-container" style="display: flex; align-items: center;">
+                        <input type="checkbox" id="showCompanyLogos" checked style="margin-right: 5px;">
+                        <label for="showCompanyLogos" style="margin-bottom: 0; cursor: pointer;">显示公司Logo</label>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="copyright">版权文案（支持多行输入）：</label>
+                <textarea id="copyright" placeholder="请输入版权文案" rows="3" style="resize: vertical;"></textarea>
+            </div>
+            
+            <div class="section-title">模板选择</div>
+            <div class="form-group">
+                <label for="colorTemplate">配色模板：</label>
+                <div class="template-selection">
+                    <button type="button" class="template-btn" data-template="default">
+                        <div class="template-preview default-preview"></div>
+                        <span>默认</span>
+                    </button>
+                    <button type="button" class="template-btn" data-template="red">
+                        <div class="template-preview red-preview"></div>
+                        <span>红色</span>
+                    </button>
+                    <button type="button" class="template-btn" data-template="blue">
+                        <div class="template-preview blue-preview"></div>
+                        <span>蓝色</span>
+                    </button>
+                    <button type="button" class="template-btn" data-template="purple">
+                        <div class="template-preview purple-preview"></div>
+                        <span>紫色</span>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="section-title">背景设置</div>
+            <div class="form-group">
+                <label for="bgColorOuter">外层背景颜色：</label>
+                <div class="color-group">
+                    <input type="color" id="bgColorOuter" value="#f5f5f5">
+                    <input type="text" id="bgColorOuterHex" value="#f5f5f5" class="color-hex-input">
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="toothSize">锯齿大小（越大越稀疏）：</label>
+                <div style="display: flex; align-items: center;">
+                    <input type="range" id="toothSize" min="10" max="80" value="40" style="flex-grow: 1;">
+                    <span id="toothSizeValue" style="margin-left: 10px; min-width: 30px; text-align: right;">40</span>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="gradientColorDeep">主题渐变色（深色）：</label>
+                <div class="color-group">
+                    <input type="color" id="gradientColorDeep" value="#0052cc">
+                    <input type="text" id="gradientColorDeepHex" value="#0052cc" class="color-hex-input">
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="gradientColorLight">主题渐变色（浅色）：</label>
+                <div class="color-group">
+                    <input type="color" id="gradientColorLight" value="#4169E1">
+                    <input type="text" id="gradientColorLightHex" value="#4169E1" class="color-hex-input">
+                </div>
+            </div>
+            
+            <div class="section-title">表格设置</div>
+            
+            <div class="form-group">
+                <label for="colorRule">数据颜色规则：</label>
+                <select id="colorRule" class="form-control">
+                    <option value="1" selected>规则1: 仅当列有正负值混合时区分颜色</option>
+                    <option value="2">规则2: 始终应用颜色（正值红色，负值绿色）</option>
+                </select>
+                <div class="form-hint" style="font-size: 12px; color: #666; margin-top: 5px;">
+                    规则1: 只有当列中同时存在正负值时才区分颜色<br>
+                    规则2: 即使列中全为正值或负值，也应用颜色区分
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="lastColumnFontSize">最后一列字体大小：</label>
+                <div style="display: flex; align-items: center;">
+                    <input type="range" id="lastColumnFontSize" min="22" max="30" value="30" style="flex-grow: 1;">
+                    <span id="lastColumnFontSizeValue" style="margin-left: 10px; min-width: 30px; text-align: right;">30</span>
+                </div>
+                <div class="form-hint" style="font-size: 12px; color: #666; margin-top: 5px;">
+                    调整最后一列的字体大小，较小的字体可以展示更多内容
+                </div>
+            </div>
+            
+            <div class="section-title">表头参数设置</div>
+            
+            <div class="form-group">
+                <label for="headerLineSpacing">表头行间距（多行表头时生效）：</label>
+                <div style="display: flex; align-items: center;">
+                    <input type="range" id="headerLineSpacing" min="0" max="30" value="10" style="flex-grow: 1;">
+                    <span id="headerLineSpacingValue" style="margin-left: 10px; min-width: 30px; text-align: right;">10</span>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="headerTopPadding">表头上边距：</label>
+                <div style="display: flex; align-items: center;">
+                    <input type="range" id="headerTopPadding" min="0" max="30" value="10" style="flex-grow: 1;">
+                    <span id="headerTopPaddingValue" style="margin-left: 10px; min-width: 30px; text-align: right;">10</span>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="headerBottomPadding">表头下边距：</label>
+                <div style="display: flex; align-items: center;">
+                    <input type="range" id="headerBottomPadding" min="0" max="30" value="10" style="flex-grow: 1;">
+                    <span id="headerBottomPaddingValue" style="margin-left: 10px; min-width: 30px; text-align: right;">10</span>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="rowBgColorDeep">行背景渐变色（深色）：</label>
+                <div class="color-group">
+                    <input type="color" id="rowBgColorDeep" value="#f0f7ff">
+                    <input type="text" id="rowBgColorDeepHex" value="#f0f7ff" class="color-hex-input">
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="rowBgColorLight">行背景渐变色（浅色）：</label>
+                <div class="color-group">
+                    <input type="color" id="rowBgColorLight" value="#ffffff">
+                    <input type="text" id="rowBgColorLightHex" value="#ffffff" class="color-hex-input">
+                </div>
+            </div>
+            
+            <button id="generateBtn">生成信息图</button>
+        </div>
+        
+        <div class="preview-section">
+            <svg id="infoGraphic" width="1200" height="800" viewBox="0 0 1200 800">
+                <!-- SVG内容将通过JavaScript动态生成 -->
+            </svg>
+        </div>
+    </div>
+
+    <!-- 引入处理Excel文件的库 -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+    <script src="image-inliner.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
