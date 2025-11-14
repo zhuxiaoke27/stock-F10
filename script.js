@@ -1588,14 +1588,6 @@ document.addEventListener('DOMContentLoaded', function() {
                             text.setAttribute('font-family', 'MiSans-Medium, sans-serif'); // 文本使用Medium
                         }
                         
-                        // 检查是否包含特殊字符，有的话可能需要调整
-                        const containsSpecialChar = /[、，,]/.test(valueStr);
-                        
-                        // 针对特殊字符的内容进行位置微调，稍微向左移动一些
-                        if (containsSpecialChar) {
-                            text.setAttribute('x', svgWidth - padding - 28 - 20); // 多留出10px的空间
-                        }
-                        
                         // 根据是否为数值及正负值，设置颜色和字体粗细
                         let textColor = '#333333'; // 默认颜色
                         // 根据选择的颜色规则进行处理
